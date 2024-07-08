@@ -1,16 +1,53 @@
 from __future__ import annotations
 from kernel_tuner.generation.token.token import *
 from kernel_tuner.generation.code.code import Code, CodeBlock
+from kernel_tuner.generation.utils.util import token_types
+from kernel_tuner.generation.utils.patterns import *
 import re
-
 
 class CodeToken(Token):
 
   def __init__(self, line: Line, content: CodeBlock, type: TOKEN_TYPE) -> None:
     super().__init__(line, content, type)
     self.__detect_children()
+    self.meta = self.__detect_meta()
 
   
+  
+  # create additional tokens for 'FOR' specifi (token.py)
+  def __detect_meta(self) -> dict[TOKEN_TYPE, str]:
+    meta = {}
+    if self.type == TOKEN_TYPE.FOR_INITIALISATION:      
+      match = for_initiailise_pattern_with_type.search(self.line.content)
+      if match:
+          meta[TOKEN_TYPE.TYPE] = match.group(1).strip().strip()
+          meta[TOKEN_TYPE.VARIABLE_NAME] = match.group(2).strip()
+      else:
+        match = for_initiailise_pattern.search(self.line.content)
+        if match:
+            meta[TOKEN_TYPE.VARIABLE_NAME] = match.group(1).strip()
+    elif self.type == TOKEN_TYPE.FOR_CONDITION:
+      match = for_condition_pattern.search(self.line.content)
+      if match:
+          meta[TOKEN_TYPE.LEFT_OPERAND] = match.group(1).strip()
+          meta[TOKEN_TYPE.OPERATION] = match.group(2).strip()
+          meta[TOKEN_TYPE.RIGHT_OPERAND] = match.group(3).strip()
+    elif self.type == TOKEN_TYPE.FOR_OPERATION:
+      match = for_operation_pattern.search(self.line.content)
+      if match:
+          meta[TOKEN_TYPE.VARIABLE_NAME] = match.group(2).strip()
+          if match.group(1):
+            if match.group(1).strip() == '++':
+              meta[TOKEN_TYPE.PRE_INCREMENT] = match.group(1).strip()
+            elif match.group(1).strip() == '--':
+              meta[TOKEN_TYPE.PRE_DECREMENT] = match.group(1).strip()
+          if match.group(3):
+            if match.group(3).strip() == '++':
+              meta[TOKEN_TYPE.POST_INCREMENT] = match.group(3).strip()
+            elif match.group(3).strip() == '--':
+              meta[TOKEN_TYPE.POST_DECREMENT] = match.group(3).strip()
+    return meta
+
   def __detect_children(self):
     idx = 1
     rest_possible_types = [
@@ -20,6 +57,17 @@ class CodeToken(Token):
       CodeToken.build_variable_reassignment
     ]
 
+    # Detect 0 line itself
+    if self.type == TOKEN_TYPE.FOR:
+      code_token = CodeToken.build_for_body(self.line, self.content)
+      if code_token:
+        self.append_child(code_token)
+    elif self.type == TOKEN_TYPE.FOR_BODY:
+      code_tokens = CodeToken.build_for_body_content(self.line, self.content)
+      for code_token in code_tokens:
+        self.append_child(code_token)
+
+    # Detect start from 1 line
     while idx < self.content.size():
 
       code_token = None
@@ -258,18 +306,43 @@ class CodeToken(Token):
     return None
   
   @staticmethod
-  def generate_new_code_token(
-    content: list[Line],
-    type: TOKEN_TYPE
-  ) -> CodeToken:
-    return CodeToken(content[0], CodeBlock(content), type)
-
+  def build_for_body(start_line: Line, initial_code: CodeBlock) -> CodeToken|None:
+    return CodeToken(start_line, CodeBlock([start_line]), TOKEN_TYPE.FOR_BODY)
+  
+  @staticmethod
+  def build_for_body_content(start_line: Line, initial_code: CodeBlock) -> list[CodeToken]:
+    for_parts = for_pattern.search(start_line.content)
+    if not for_parts:
+      return []
+    for_parts = for_parts.groups()
+    if len(for_parts) != 3:
+      return []
+    for_body_sub_tokens = []
+    for_body_types = [TOKEN_TYPE.FOR_INITIALISATION, TOKEN_TYPE.FOR_CONDITION, TOKEN_TYPE.FOR_OPERATION]
+    for idx, part in enumerate(for_parts):
+      if part != '':
+        for_body_sub_tokens.append(
+          CodeToken(
+            Line(part, start_line.line_number),
+            CodeBlock([start_line]),
+            for_body_types[idx]
+          )
+        )
+    return for_body_sub_tokens
+  
   def print(self, debug=False) -> str:
     result = f"id: {self.id}\n"
     result += f"type: {self.type}\n"
     result += f"line_start: {self.line.content}\n"
+    result += f"meta: {self.meta}\n"
     result += f"children: {list(map(lambda x: x.id, self.children))}\n"
 
     if debug:
       result += f"content: \n {self.print_content()}\n"
     return result
+  
+def generate_new_code_token(
+  content: list[Line],
+  type: TOKEN_TYPE
+) -> CodeToken:
+  return CodeToken(content[0], CodeBlock(content), type)

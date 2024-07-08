@@ -21,6 +21,9 @@ class Line:
   def endswith(self, start) -> bool:
     return self.content.endswith(start)
   
+  def split(self) -> list[str]:
+    return self.content.split()
+  
   def append(self, line: Line, split: str):
     self.content += split + line.content
     self.content.strip()

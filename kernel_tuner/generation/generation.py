@@ -15,6 +15,8 @@ def generate_kernel_sources(initial_code_str: str, initilea_tune_params: dict, d
     write_file(debug_file, '='*10 + 'CODE' + '='*10 + '\n' + code.to_text() + '\n\n', "a")
   tree_builder = TreeBuilder(code)
   tree = tree_builder.build_tree()
+  tree.dfs_print()
+  exit(0)
   if debug_file:
     write_file(debug_file, '='*10 + 'TREE' + '='*10 + '\n\n', "a")
     tree.dfs_print(debug_file_name=debug_file)

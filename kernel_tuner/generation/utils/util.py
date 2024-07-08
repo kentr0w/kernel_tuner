@@ -1,4 +1,5 @@
 from kernel_tuner.generation.token.pragma_token import *
+from kernel_tuner.generation.token.token import TOKEN_TYPE
 from typing import TypeAlias
 
 PragmaTuneParams: TypeAlias = list[tuple[PRAGMA_KEYWORDS, str, list[str]]]
@@ -19,3 +20,7 @@ def filter_pragmas_contains_keyword(
     if (any(x in contains_keywords for x in pragma.keywords) and all(x not in exclude_keywords for x in pragma.keywords) ):
         resulst.append(pragma)
   return resulst
+
+token_types = {
+  'int': TOKEN_TYPE.TYPE_INT
+}

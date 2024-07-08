@@ -3,6 +3,7 @@ import copy
 from kernel_tuner.generation.token.token import *
 from kernel_tuner.generation.code.line import Line
 from kernel_tuner.generation.code.code import CodeBlock, Code
+from kernel_tuner.generation.utils.patterns import *
 import numpy as np
 import re
 
@@ -89,8 +90,7 @@ class PragmaToken(Token):
   def __detect_keywords(self) -> tuple[list[PRAGMA_KEYWORDS], dict[PRAGMA_KEYWORDS, str]]:
     keywords_result = []
     keywords_map = {}
-    pattern_with_parentheses = re.compile(r'({})\(.*\)'.format('|'.join(PRAGMA_KEYWORDS_VALUES)))
-    pattern_exact = re.compile(r'({})'.format('|'.join(PRAGMA_KEYWORDS_VALUES)))
+    
     line = self.line
     for word in line.content.split():
       is_pattern_with_parentheses = pattern_with_parentheses.match(word)
