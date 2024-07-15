@@ -9,8 +9,8 @@ from kernel_tuner.generation.utils.util import *
 # Only static schedule kind is supported for GPU
 class AddChunkSizeToScheduleRule(RuleABC):
 
-  def __init__(self, tree: Tree, context: Context, initila_params: dict):
-    super().__init__(tree, context, initila_params)
+  def __init__(self, tree: Tree, context: Context, initial_params: dict):
+    super().__init__(tree, context, initial_params)
 
   def run(self, debug_file=None):
     pragma_for = filter_pragmas_contains_keyword(self.tree.pragma_tokens, [PRAGMA_KEYWORDS.SCHEDULE])

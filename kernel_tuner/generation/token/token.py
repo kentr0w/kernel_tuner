@@ -30,8 +30,8 @@ class PRAGMA_TOKEN_TYPE(Enum):
   ORDERED = 22
   CANCEL = 23
   THREADPRIVATE = 24
-  FOR = 25
-  UNKNOWN = 26
+  FOR = 25  
+  UNKNOWN = 27
 
 
   def is_data(self):
@@ -82,6 +82,7 @@ class PRAGMA_KEYWORDS(Enum):
   IS_DEVICE_PTR = 'is_device_ptr'
   DEFAULT_MAP = 'defaultmap'
   DIST_SCHEDULE = 'dist_schedule'
+  THREAD_LIMIT = 'thread_limit'
   
 
 
@@ -96,7 +97,7 @@ class TOKEN_TYPE(Enum):
   PRAGMA = 6
   VARIABLE_ASSIGNMENT = 7
   VARIABLE_DECLARATION = 8
-  VARIABLE_REASSIGNMENT = 9  
+  LONG_VARIABLE_REASSIGNMENT = 9
   FOR_INITIALISATION = 10
   FOR_CONDITION = 11
   FOR_OPERATION = 12
@@ -114,9 +115,30 @@ class TOKEN_TYPE(Enum):
   COMPLEX_STRUCTURE = 23
   TYPE_INT = 24
   VARIABLE_NAME = 25
-  LEFT_OPERAND = 26
-  RIGHT_OPERAND = 27
+
   OPERATION = 28
+
+  VARIABLE_TARGET = 29
+  BINARY_OPEARION = 30
+  SHORT_VARIABLE_REASSIGNMENT = 31 
+
+  TARGET = 32
+  ARRAY_ELEMENT = 33
+  ARRAY_NAME = 34
+
+  LEFT_OPERAND = 35
+  RIGHT_OPERAND = 36
+
+  OPERATION_SUM=37
+  OPERATION_MINUS=38
+  OPERATION_MUTLIPLICATION=39
+  OPERATION_AND=40
+  OPERATION_AND_AND=41
+  OPERATION_OR=42
+  OPERATION_OR_OR=43
+  OPERATION_XOR=44
+
+  ARRAY_INDEX = 45
 
 
 class Token(ABC):
@@ -145,7 +167,7 @@ class Token(ABC):
     queue:list[Token] = [self]
     results = []
     self.__bfs(type, queue, results)
-    return results.pop(0)
+    return results.pop(0) if len(results) > 0 else None
   
   def find_all(self, type: TOKEN_TYPE) -> list[Token]:
     queue:list[Token] = [self]

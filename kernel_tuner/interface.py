@@ -37,7 +37,7 @@ from kernel_tuner.runners.sequential import SequentialRunner
 from kernel_tuner.runners.simulation import SimulationRunner
 from kernel_tuner.searchspace import Searchspace
 
-from kernel_tuner.generation.generation import generate_kernel_sources
+from kernel_tuner.generation.generation import generate_kernel_sources, rule_map
 
 try:
     import torch
@@ -747,7 +747,10 @@ def auto_tune_kernel(
     kernel_source,
     problem_size,
     tune_params,
-    arguments=None,    
+    rules = list(rule_map.keys()),
+    validate_rules=True,
+    exclude_rules = [],
+    arguments=None,
     grid_div_x=None,
     grid_div_y=None,
     grid_div_z=None,
@@ -777,27 +780,24 @@ def auto_tune_kernel(
     simulation_mode=False,
     observers=None,
     objective=None,
-    objective_higher_is_better=None,
+    objective_higher_is_better=None, 
 ):
     
     initial_kernel_source, arguments = directives_util.preprocess_directive_source(kernel_name, kernel_source, directive)
 
     debug_file = util.get_temp_filename()
-    
-
-    generated_sources = generate_kernel_sources(initial_kernel_source, tune_params, debug_file)
-    
+        
     opts = locals()
     kernel_options = Options([(k, opts[k]) for k in _kernel_options.keys()])
     device_options = Options([(k, opts[k]) for k in _device_options.keys()])
+    
+    generated_sources = generate_kernel_sources(initial_kernel_source, tune_params, rules, exclude_rules, debug_file)
     
     strategy = brute_force
     
     util.write_file(debug_file, '='*10 + 'LOOP' + '='*10 + '\n\n', "a")
     for (generated_code, generated_tune_params) in generated_sources:
-
-        util.write_file(debug_file, '='*10 + 'CODE' + '='*10 + f"\n{generated_code.to_text()}\n\n", "a")
-
+        
         kernelsource = core.KernelSource(kernel_name, generated_code.to_text(), lang, defines)
         tune_params = generated_tune_params        
 
@@ -819,6 +819,14 @@ def auto_tune_kernel(
         searchspace = Searchspace(tune_params, restrictions, runner.dev.max_threads)
         restrictions = searchspace._modified_restrictions
         tuning_options.restrictions = restrictions
+
+        if validate_rules:
+            func = runner.compile(searchspace.sorted_list(), tuning_options)
+            print(f"HEY!!!!!! {func}")
+            if not func:
+                continue
+            else:
+                print("Code is valid!!!!!!")
 
         results = strategy.tune(searchspace, runner, tuning_options)
         util.write_file(debug_file, f"\n'{results}\n", "a")

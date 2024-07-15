@@ -8,14 +8,12 @@ from kernel_tuner.generation.utils.util import *
 
 class AddNumThreadsAndDistributeRule(RuleABC):
 
-  def __init__(self, tree: Tree, context: Context, initila_params: dict):
-    super().__init__(tree, context, initila_params)
+  def __init__(self, tree: Tree, context: Context, initial_params: PragmaTuneParams):
+    super().__init__(tree, context, initial_params)
 
   def run(self, debug_file=None):
-
     parallel_pragmas = filter_pragmas_by_type(self.tree.pragma_tokens, PRAGMA_TOKEN_TYPE.PARALLEL)
-    parallel_for_pragmas = filter_pragmas_contains_keyword(parallel_pragmas, PRAGMA_KEYWORDS.FOR)
-
+    parallel_for_pragmas = filter_pragmas_contains_keyword(parallel_pragmas, [PRAGMA_KEYWORDS.FOR])
     old_tokens = []
     new_tokens = []
     new_tune_params = self.generate_param()

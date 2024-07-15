@@ -12,12 +12,13 @@ code = """
 
 #define VECTOR_SIZE 10000
 
-void vector_add(float *a, float *b, float *c) {
+void vector_add(float *a, float *b, float *c) {  
 	#pragma tuner start vector_add a(float*:VECTOR_SIZE) b(float*:VECTOR_SIZE) c(float*:VECTOR_SIZE) size(int:VECTOR_SIZE)
+  int sum = 0;
 	#pragma omp target parallel num_threads(nthreads)
-  #pragma omp for schedule(static)
-	for (int i = 0; i < VECTOR_SIZE; i++ ) {
-		c[i] = a[i] + b[i];
+	{
+    foo();
+    foo(a, 2);
 	}
 	#pragma tuner stop
 }

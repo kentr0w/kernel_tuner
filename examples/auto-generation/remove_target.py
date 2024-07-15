@@ -14,7 +14,8 @@ code = """
 
 void vector_add(float *a, float *b, float *c) {
 	#pragma tuner start vector_add a(float*:VECTadd_num_threads_and_distribute_rOR_SIZE) b(float*:VECTOR_SIZE) c(float*:VECTOR_SIZE) size(int:VECTOR_SIZE)
-	#pragma omp target parallel for num_threads(nthreads)
+
+  #pragma omp target parallel for num_threads(nthreads)
 	for ( int i = 0; i < VECTOR_SIZE; i++ ) {
 		c[i] = a[i] + b[i];
 	}
@@ -33,6 +34,7 @@ auto_tune_kernel(
     code,
     0,
     tune_params=tune_params,
+    rules=['no_target'],
     compiler_options=["-fopenmp", "-mp=gpu"],
     compiler="nvc++",
     directive=directive

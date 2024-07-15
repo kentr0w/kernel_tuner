@@ -10,11 +10,11 @@ code = """
 #include <stdlib.h>
 #include <omp.h>
 
-#define VECTOR_SIZE 10000
+#define VECTOR_SIZE 100000
 
 void vector_add(float *a, float *b, float *c) {
-	#pragma tuner start vector_add a(float*:VECTadd_num_threads_and_distribute_rOR_SIZE) b(float*:VECTOR_SIZE) c(float*:VECTOR_SIZE) size(int:VECTOR_SIZE)
-	#pragma omp target parallel for num_threads(nthreads)
+	#pragma tuner start vector_add a(float*:VECTOR_SIZE) b(float*:VECTOR_SIZE) c(float*:VECTOR_SIZE) size(int:VECTOR_SIZE)
+	#pragma omp target parallel for num_threads(nthreads) simd
 	for ( int i = 0; i < VECTOR_SIZE; i++ ) {
 		c[i] = a[i] + b[i];
 	}
@@ -26,13 +26,14 @@ void vector_add(float *a, float *b, float *c) {
 directive = DirectiveCode(OpenMP(), Cxx())
 
 tune_params = dict()
-tune_params["nthreads"] = [4, 8]
+tune_params["nthreads"] = [2, 4]
 
 auto_tune_kernel(
     "vector_add",
     code,
     0,
     tune_params=tune_params,
+    rules=['simd_len'],
     compiler_options=["-fopenmp", "-mp=gpu"],
     compiler="nvc++",
     directive=directive

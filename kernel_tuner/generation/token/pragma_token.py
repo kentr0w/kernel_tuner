@@ -3,7 +3,7 @@ import copy
 from kernel_tuner.generation.token.token import *
 from kernel_tuner.generation.code.line import Line
 from kernel_tuner.generation.code.code import CodeBlock, Code
-from kernel_tuner.generation.utils.patterns import *
+import kernel_tuner.generation.utils.patterns as pattern 
 import numpy as np
 import re
 
@@ -93,8 +93,8 @@ class PragmaToken(Token):
     
     line = self.line
     for word in line.content.split():
-      is_pattern_with_parentheses = pattern_with_parentheses.match(word)
-      is_pattern_exact = pattern_exact.match(word)
+      is_pattern_with_parentheses = pattern.directive_with_parentheses_pattern.match(word)
+      is_pattern_exact = pattern.directive_exact_pattern.match(word)
       if is_pattern_with_parentheses:
         for key_word in PRAGMA_KEYWORDS_VALUES:
           if re.match(r'{}\(.*\)'.format(key_word), word):
@@ -110,11 +110,11 @@ class PragmaToken(Token):
   def __rebuild(self):
     kws = ''
     for kw in self.keywords:
-      kws += f"{kw.name.lower()} "
+      kws += f" {kw.name.lower()}"
       if kw in self.meta:
         kws += f"({self.meta[kw]}) "
     target = " target " if self.is_target_used else ""
-    self.initial_line = Line(f"#pragma omp{target} {kws}", self.initial_line.line_number)
+    self.initial_line = Line(f"#pragma omp{target}{kws}", self.initial_line.line_number)
 
   def print(self, debug=False) -> str:
     result = f"id: {self.id}\n"
@@ -138,15 +138,13 @@ def build_pragma_token(
     is_target_used: bool = True,
     level: int|None = None
   ) -> PragmaToken:
-
   target = "target" if is_target_used else ""
-
   pragma_type_str = f"{type.name.lower()}"
-  
   for keyword in keywords:
+    if keyword.name == type.name:
+      continue
     pragma_type_str += f" {keyword.name.lower()}"
     if keyword in meta:
       pragma_type_str += f" ({meta[keyword]})"
-
   line = f"#pragma omp {target} {pragma_type_str}"
   return PragmaToken(Line(line, line_number), level if level else 0)
