@@ -69,6 +69,7 @@ class SequentialRunner(Runner):
         # iterate over parameter space
         for element in parameter_space:
             params = dict(zip(tuning_options.tune_params.keys(), element))
+            print(f"Params:    {params}")
 
             result = None
             warmup_time = 0
@@ -117,3 +118,37 @@ class SequentialRunner(Runner):
             results.append(params)
 
         return results
+
+    def compile(self, parameter_space, tuning_options):
+        """Iterate through the entire parameter space using a single Python process.
+
+        :param parameter_space: The parameter space as an iterable.
+        :type parameter_space: iterable
+
+        :param tuning_options: A dictionary with all options regarding the tuning
+            process.
+        :type tuning_options: kernel_tuner.iterface.Options
+
+        :returns: A list of dictionaries for executed kernel configurations and their
+            execution times.
+        :rtype: dict())
+
+        """
+        logging.debug('sequential runner started for ' + self.kernel_options.kernel_name)
+
+        results = []
+
+        # iterate over parameter space
+        element = parameter_space[0]
+        params = dict(zip(tuning_options.tune_params.keys(), element))
+        print(f"Params:  {params}")
+        try:
+            instance = self.dev.create_kernel_instance(self.kernel_source, self.kernel_options, params, False)
+            if not instance:
+                return None
+            func = self.dev.compile_kernel(instance, False)
+            return func
+        except Exception as e:
+            print(e)
+            return None
+        

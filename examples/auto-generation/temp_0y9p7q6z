@@ -1,0 +1,488 @@
+==========CODE==========
+#include <stdlib.h>
+#include <omp.h>
+#define VECTOR_SIZE 1000
+
+#include <chrono>
+extern "C" float vector_add(float * restrict a, float * restrict b, float * restrict c, int size){
+#pragma omp target enter data map(to: a[0:1000])
+#pragma omp target enter data map(to: b[0:1000])
+#pragma omp target enter data map(to: c[0:1000])
+auto kt_timing_start = std::chrono::steady_clock::now();
+#pragma omp target parallel for num_threads(nthreads)
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+c[i] = a[i] + b[i];
+}
+float sum = 0;
+float sum_2 = 0;
+#pragma omp target  parallel for
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum = sum + c[i];
+}
+#pragma omp target  parallel for
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum_2 += c[i];
+}
+
+auto kt_timing_end = std::chrono::steady_clock::now();
+std::chrono::duration<float, std::milli> elapsed_time = kt_timing_end - kt_timing_start;
+#pragma omp target exit data map(from: a[0:1000])
+#pragma omp target exit data map(from: b[0:1000])
+#pragma omp target exit data map(from: c[0:1000])
+
+return elapsed_time.count();
+
+}
+
+==========TREE==========
+
+id: 605
+type: TOKEN_TYPE.PRAGMA
+level: 0
+pragma_type: PRAGMA_TOKEN_TYPE.ROOT
+keywords: []
+META: {}
+line_start: 
+children: [67, 937, 875, 216, 955, 387, 180, 597, 166]
+content: 
+ 
+
+id: 67
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_ENTER
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target enter data map(to: a[0:1000])
+children: []
+content: 
+ #pragma omp target enter data map(to: a[0:1000])
+
+id: 937
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_ENTER
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target enter data map(to: b[0:1000])
+children: []
+content: 
+ #pragma omp target enter data map(to: b[0:1000])
+
+id: 875
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_ENTER
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target enter data map(to: c[0:1000])
+children: []
+content: 
+ #pragma omp target enter data map(to: c[0:1000])
+
+id: 216
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.PARALLEL
+keywords: ['PARALLEL', 'FOR', 'NUM_THREADS']
+META: {<PRAGMA_KEYWORDS.NUM_THREADS: 'num_threads'>: 'nthreads'}
+line_start: #pragma omp target parallel for num_threads(nthreads)
+children: [328]
+content: 
+ #pragma omp target parallel for num_threads(nthreads)
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+c[i] = a[i] + b[i];
+}
+
+id: 328
+type: TOKEN_TYPE.FOR
+line_start: for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+meta: {}
+children: [436, 733]
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+c[i] = a[i] + b[i];
+}
+
+id: 436
+type: TOKEN_TYPE.FOR_BODY
+line_start: for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+meta: {}
+children: [516, 890, 762]
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 516
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int i = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'i'}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 890
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: i < VECTOR_SIZE
+meta: {}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 762
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: i++
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'i', <TOKEN_TYPE.POST_INCREMENT: 19>: '++'}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 733
+type: TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT
+line_start: c[i] = a[i] + b[i];
+meta: {}
+children: [64, 447, 610, 796]
+content: 
+ c[i] = a[i] + b[i];
+
+id: 64
+type: TOKEN_TYPE.TARGET
+line_start: c[i]
+meta: {}
+children: [531]
+content: 
+ c[i] = a[i] + b[i];
+
+id: 531
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: c[i]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'c', <TOKEN_TYPE.ARRAY_INDEX: 45>: 'i'}
+children: []
+content: 
+ c[i] = a[i] + b[i];
+
+id: 447
+type: TOKEN_TYPE.LEFT_OPERAND
+line_start: a[i]
+meta: {}
+children: [199]
+content: 
+ c[i] = a[i] + b[i];
+
+id: 199
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: a[i]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'a', <TOKEN_TYPE.ARRAY_INDEX: 45>: 'i'}
+children: []
+content: 
+ c[i] = a[i] + b[i];
+
+id: 610
+type: TOKEN_TYPE.OPERATION_SUM
+line_start: +
+meta: {}
+children: []
+content: 
+ c[i] = a[i] + b[i];
+
+id: 796
+type: TOKEN_TYPE.RIGHT_OPERAND
+line_start: b[i]
+meta: {}
+children: [737]
+content: 
+ c[i] = a[i] + b[i];
+
+id: 737
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: b[i]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'b', <TOKEN_TYPE.ARRAY_INDEX: 45>: 'i'}
+children: []
+content: 
+ c[i] = a[i] + b[i];
+
+id: 955
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.PARALLEL
+keywords: ['PARALLEL', 'FOR']
+META: {}
+line_start: #pragma omp target  parallel for
+children: [731]
+content: 
+ #pragma omp target  parallel for
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum = sum + c[i];
+}
+
+id: 731
+type: TOKEN_TYPE.FOR
+line_start: for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+meta: {}
+children: [346, 185]
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum = sum + c[i];
+}
+
+id: 346
+type: TOKEN_TYPE.FOR_BODY
+line_start: for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+meta: {}
+children: [808, 321, 419]
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 808
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int i = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'i'}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 321
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: i < VECTOR_SIZE
+meta: {}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 419
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: i++
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'i', <TOKEN_TYPE.POST_INCREMENT: 19>: '++'}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 185
+type: TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT
+line_start: sum = sum + c[i];
+meta: {}
+children: [781, 857, 460, 990]
+content: 
+ sum = sum + c[i];
+
+id: 781
+type: TOKEN_TYPE.TARGET
+line_start: sum
+meta: {}
+children: [617]
+content: 
+ sum = sum + c[i];
+
+id: 617
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: sum
+meta: {}
+children: []
+content: 
+ sum = sum + c[i];
+
+id: 857
+type: TOKEN_TYPE.LEFT_OPERAND
+line_start: sum
+meta: {}
+children: [425]
+content: 
+ sum = sum + c[i];
+
+id: 425
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: sum
+meta: {}
+children: []
+content: 
+ sum = sum + c[i];
+
+id: 460
+type: TOKEN_TYPE.OPERATION_SUM
+line_start: +
+meta: {}
+children: []
+content: 
+ sum = sum + c[i];
+
+id: 990
+type: TOKEN_TYPE.RIGHT_OPERAND
+line_start: c[i]
+meta: {}
+children: [816]
+content: 
+ sum = sum + c[i];
+
+id: 816
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: c[i]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'c', <TOKEN_TYPE.ARRAY_INDEX: 45>: 'i'}
+children: []
+content: 
+ sum = sum + c[i];
+
+id: 387
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.PARALLEL
+keywords: ['PARALLEL', 'FOR']
+META: {}
+line_start: #pragma omp target  parallel for
+children: [214]
+content: 
+ #pragma omp target  parallel for
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum_2 += c[i];
+}
+
+id: 214
+type: TOKEN_TYPE.FOR
+line_start: for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+meta: {}
+children: [270, 373]
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum_2 += c[i];
+}
+
+id: 270
+type: TOKEN_TYPE.FOR_BODY
+line_start: for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+meta: {}
+children: [750, 979, 304]
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 750
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int i = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'i'}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 979
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: i < VECTOR_SIZE
+meta: {}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 304
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: i++
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'i', <TOKEN_TYPE.POST_INCREMENT: 19>: '++'}
+children: []
+content: 
+ for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+
+id: 373
+type: TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT
+line_start: sum_2 += c[i];
+meta: {}
+children: [473]
+content: 
+ sum_2 += c[i];
+
+id: 473
+type: TOKEN_TYPE.TARGET
+line_start: sum_2
+meta: {}
+children: [344]
+content: 
+ sum_2 += c[i];
+
+id: 344
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: sum_2
+meta: {}
+children: []
+content: 
+ sum_2 += c[i];
+
+id: 180
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_EXIT
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target exit data map(from: a[0:1000])
+children: []
+content: 
+ #pragma omp target exit data map(from: a[0:1000])
+
+id: 597
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_EXIT
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target exit data map(from: b[0:1000])
+children: []
+content: 
+ #pragma omp target exit data map(from: b[0:1000])
+
+id: 166
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_EXIT
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target exit data map(from: c[0:1000])
+children: []
+content: 
+ #pragma omp target exit data map(from: c[0:1000])
+
+==========RULES==========
+
+
+RULE reduction was applied!
+
+PARAMS:
+[(<PRAGMA_KEYWORDS.NUM_THREADS: 'num_threads'>, 'nthreads', [16, 32])]
+==========CODE==========
+#include <stdlib.h>
+#include <omp.h>
+#define VECTOR_SIZE 1000
+
+#include <chrono>
+extern "C" float vector_add(float * restrict a, float * restrict b, float * restrict c, int size){
+#pragma omp target enter data map(to: a[0:1000])
+#pragma omp target enter data map(to: b[0:1000])
+#pragma omp target enter data map(to: c[0:1000])
+auto kt_timing_start = std::chrono::steady_clock::now();
+#pragma omp target parallel for num_threads(nthreads)
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+c[i] = a[i] + b[i];
+}
+float sum = 0;
+float sum_2 = 0;
+#pragma omp target  parallel for reduction(+:sum)
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum = sum + c[i];
+}
+#pragma omp target  parallel for
+for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+sum_2 += c[i];
+}
+
+auto kt_timing_end = std::chrono::steady_clock::now();
+std::chrono::duration<float, std::milli> elapsed_time = kt_timing_end - kt_timing_start;
+#pragma omp target exit data map(from: a[0:1000])
+#pragma omp target exit data map(from: b[0:1000])
+#pragma omp target exit data map(from: c[0:1000])
+
+return elapsed_time.count();
+
+}
+
+==========LOOP==========
+
+
+'{'nthreads': [16, 32]}
+
+'[{'nthreads': 16, 'time': 0.20621600108487265, 'times': [0.5440750122070312, 0.15504899621009827, 0.1527249962091446, 0.14748500287532806, 0.14327700436115265, 0.1516830027103424, 0.14921799302101135], 'compile_time': 2090.847548970487, 'verification_time': 0, 'benchmark_time': 1.746897993143648, 'strategy_time': 0, 'framework_time': 0, 'timestamp': '2024-07-27 21:17:04.444112+00:00'}, {'nthreads': 32, 'time': 0.3248217148440225, 'times': [0.6639379858970642, 0.27219799160957336, 0.27665600180625916, 0.27027401328086853, 0.25245100259780884, 0.263141006231308, 0.27509400248527527], 'compile_time': 2094.9891050113365, 'verification_time': 0, 'benchmark_time': 2.558683045208454, 'strategy_time': 0, 'framework_time': 0.36095292307436466, 'timestamp': '2024-07-27 21:17:06.542064+00:00'}]
+
+'{'nthreads': [16, 32]}
+
+'[{'nthreads': 16, 'time': 0.22708799796445028, 'times': [0.7349309921264648, 0.14092299342155457, 0.143436998128891, 0.13632400333881378, 0.1712699979543686, 0.1324169933795929, 0.13031400740146637], 'compile_time': 2328.9479560335167, 'verification_time': 0, 'benchmark_time': 1.9879989558830857, 'strategy_time': 0, 'framework_time': 0, 'timestamp': '2024-07-27 21:17:13.518890+00:00'}, {'nthreads': 32, 'time': 0.2047877162694931, 'times': [0.6168010234832764, 0.14433899521827698, 0.1403219997882843, 0.12690700590610504, 0.15174299478530884, 0.1263049989938736, 0.1270969957113266], 'compile_time': 2288.644257991109, 'verification_time': 0, 'benchmark_time': 1.8307450227439404, 'strategy_time': 0, 'framework_time': 0.4306929768063128, 'timestamp': '2024-07-27 21:17:15.809842+00:00'}]

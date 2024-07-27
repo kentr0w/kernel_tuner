@@ -421,7 +421,7 @@ def env():
     args = [c, a, b, n]
     tune_params = {"nthreads": [1, 2, 4]}
 
-    return ["vector_add", kernel_string, size, args, tune_params]
+    return ["vector_add", kernel_string, size, tune_params, args]
 
 
 @skip_if_no_openmp

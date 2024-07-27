@@ -1,0 +1,1164 @@
+==========CODE==========
+
+
+#define N 1000
+#define M 1000
+#define P 1000
+
+extern "C" float compute_values(int N, int M, int P, double *array, double **matrix, double ***tensor) {
+
+#pragma omp target enter data map(to: array[0:N])
+#pragma omp target enter data map(to: matrix[0:M*M])
+#pragma omp target enter data map(to: tensor[0:P*P*P])
+
+double sum = 0.0;
+
+// Rule: Add simdlen(1) - Applicable
+#pragma omp target teams distribute parallel for simd
+for (int i = 0; i < N; ++i) {
+array[i] = compute_value(i);
+}
+
+// Rule: Add chunk size - Applicable
+#pragma omp target teams distribute parallel for schedule(static)
+for (int j = 0; j < M; ++j) {
+matrix[0][j] = compute_value(j);
+}
+
+// Rule: Add teams and thread limit - Applicable
+#pragma omp target parallel for reduction(+:sum)
+for (int k = 0; k < P; ++k) {
+sum += compute_value(k);
+}
+
+// Rule: Add simdlen(1) - Not applicable (already specified)
+#pragma omp target teams distribute parallel for simd simdlen(4)
+for (int l = 0; l < M; ++l) {
+matrix[1][l] = compute_value(l);
+}
+
+// Rule: Remove target - Not applicable
+#pragma omp target teams distribute parallel for
+for (int m = 0; m < N; ++m) {
+for (int n = 0; n < M; ++n) {
+matrix[m][n] = compute_value(m, n);
+}
+}
+
+// Rule: Add simdlen(1) - Not applicable (no simd directive)
+#pragma omp target teams distribute parallel for
+for (int p = 0; p < N; ++p) {
+for (int q = 0; q < M; ++q) {
+for (int r = 0; r < P; ++r) {
+tensor[p][q][r] = compute_value(p, q, r);
+}
+}
+}
+
+// Rule: Add chunk size - Not applicable (dynamic schedule)
+#pragma omp target teams distribute parallel for schedule(dynamic)
+for (int s = 0; s < N; ++s) {
+matrix[2][s] = compute_value(s);
+}
+
+#pragma omp target exit data map(to: array[0:N])
+#pragma omp target exit data map(to: matrix[0:M*M])
+#pragma omp target exit data map(to: tensor[0:P*P*P])
+}
+
+
+==========TREE==========
+
+id: 861
+type: TOKEN_TYPE.PRAGMA
+level: 0
+pragma_type: PRAGMA_TOKEN_TYPE.ROOT
+keywords: []
+META: {}
+line_start: 
+children: [247, 382, 339, 594, 877, 523, 49, 343, 21, 649, 610, 798, 987]
+content: 
+ 
+
+id: 247
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_ENTER
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target enter data map(to: array[0:N])
+children: []
+content: 
+ #pragma omp target enter data map(to: array[0:N])
+
+id: 382
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_ENTER
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target enter data map(to: matrix[0:M*M])
+children: []
+content: 
+ #pragma omp target enter data map(to: matrix[0:M*M])
+
+id: 339
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_ENTER
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target enter data map(to: tensor[0:P*P*P])
+children: []
+content: 
+ #pragma omp target enter data map(to: tensor[0:P*P*P])
+
+id: 594
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.TEAMS
+keywords: ['TEAMS', 'DISTRIBUTE', 'PARALLEL', 'FOR', 'SIMD']
+META: {}
+line_start: #pragma omp target teams distribute parallel for simd
+children: [231]
+content: 
+ #pragma omp target teams distribute parallel for simd
+for (int i = 0; i < N; ++i) {
+array[i] = compute_value(i);
+}
+
+id: 231
+type: TOKEN_TYPE.FOR
+line_start: for (int i = 0; i < N; ++i) {
+meta: {}
+children: [669, 292]
+content: 
+ for (int i = 0; i < N; ++i) {
+array[i] = compute_value(i);
+}
+
+id: 669
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int i = 0; i < N; ++i) {
+meta: {}
+children: [97, 172, 21]
+content: 
+ for (int i = 0; i < N; ++i) {
+
+id: 97
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int i = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'i'}
+children: []
+content: 
+ for (int i = 0; i < N; ++i) {
+
+id: 172
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: i < N
+meta: {}
+children: []
+content: 
+ for (int i = 0; i < N; ++i) {
+
+id: 21
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++i
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'i', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int i = 0; i < N; ++i) {
+
+id: 292
+type: TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT
+line_start: array[i] = compute_value(i);
+meta: {}
+children: [894, 688, 532]
+content: 
+ array[i] = compute_value(i);
+
+id: 894
+type: TOKEN_TYPE.TARGET
+line_start: array[i]
+meta: {}
+children: [970]
+content: 
+ array[i] = compute_value(i);
+
+id: 970
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: array[i]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'array', <TOKEN_TYPE.ARRAY_INDEX: 45>: 'i'}
+children: []
+content: 
+ array[i] = compute_value(i);
+
+id: 688
+type: TOKEN_TYPE.FUNCTION_NAME
+line_start: compute_value
+meta: {}
+children: []
+content: 
+ array[i] = compute_value(i);
+
+id: 532
+type: TOKEN_TYPE.FUNCTION_PARAMETERS
+line_start: i
+meta: {}
+children: [560]
+content: 
+ array[i] = compute_value(i);
+
+id: 560
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: i
+meta: {}
+children: [179]
+content: 
+ i
+
+id: 179
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: i
+meta: {}
+children: []
+content: 
+ i
+
+id: 877
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.TEAMS
+keywords: ['TEAMS', 'DISTRIBUTE', 'PARALLEL', 'FOR', 'SCHEDULE']
+META: {<PRAGMA_KEYWORDS.SCHEDULE: 'schedule'>: 'static'}
+line_start: #pragma omp target teams distribute parallel for schedule(static)
+children: [943]
+content: 
+ #pragma omp target teams distribute parallel for schedule(static)
+for (int j = 0; j < M; ++j) {
+matrix[0][j] = compute_value(j);
+}
+
+id: 943
+type: TOKEN_TYPE.FOR
+line_start: for (int j = 0; j < M; ++j) {
+meta: {}
+children: [717, 368]
+content: 
+ for (int j = 0; j < M; ++j) {
+matrix[0][j] = compute_value(j);
+}
+
+id: 717
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int j = 0; j < M; ++j) {
+meta: {}
+children: [273, 462, 846]
+content: 
+ for (int j = 0; j < M; ++j) {
+
+id: 273
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int j = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'j'}
+children: []
+content: 
+ for (int j = 0; j < M; ++j) {
+
+id: 462
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: j < M
+meta: {}
+children: []
+content: 
+ for (int j = 0; j < M; ++j) {
+
+id: 846
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++j
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'j', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int j = 0; j < M; ++j) {
+
+id: 368
+type: TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT
+line_start: matrix[0][j] = compute_value(j);
+meta: {}
+children: [480, 837, 327]
+content: 
+ matrix[0][j] = compute_value(j);
+
+id: 480
+type: TOKEN_TYPE.TARGET
+line_start: matrix[0][j]
+meta: {}
+children: [785]
+content: 
+ matrix[0][j] = compute_value(j);
+
+id: 785
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: matrix[0][j]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'matrix', <TOKEN_TYPE.ARRAY_INDEX: 45>: '0'}
+children: []
+content: 
+ matrix[0][j] = compute_value(j);
+
+id: 837
+type: TOKEN_TYPE.FUNCTION_NAME
+line_start: compute_value
+meta: {}
+children: []
+content: 
+ matrix[0][j] = compute_value(j);
+
+id: 327
+type: TOKEN_TYPE.FUNCTION_PARAMETERS
+line_start: j
+meta: {}
+children: [685]
+content: 
+ matrix[0][j] = compute_value(j);
+
+id: 685
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: j
+meta: {}
+children: [138]
+content: 
+ j
+
+id: 138
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: j
+meta: {}
+children: []
+content: 
+ j
+
+id: 523
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.PARALLEL
+keywords: ['PARALLEL', 'FOR', 'REDUCTION']
+META: {<PRAGMA_KEYWORDS.REDUCTION: 'reduction'>: '+:sum'}
+line_start: #pragma omp target parallel for reduction(+:sum)
+children: [639]
+content: 
+ #pragma omp target parallel for reduction(+:sum)
+for (int k = 0; k < P; ++k) {
+sum += compute_value(k);
+}
+
+id: 639
+type: TOKEN_TYPE.FOR
+line_start: for (int k = 0; k < P; ++k) {
+meta: {}
+children: [626, 667]
+content: 
+ for (int k = 0; k < P; ++k) {
+sum += compute_value(k);
+}
+
+id: 626
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int k = 0; k < P; ++k) {
+meta: {}
+children: [643, 140, 15]
+content: 
+ for (int k = 0; k < P; ++k) {
+
+id: 643
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int k = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'k'}
+children: []
+content: 
+ for (int k = 0; k < P; ++k) {
+
+id: 140
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: k < P
+meta: {}
+children: []
+content: 
+ for (int k = 0; k < P; ++k) {
+
+id: 15
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++k
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'k', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int k = 0; k < P; ++k) {
+
+id: 667
+type: TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT
+line_start: sum += compute_value(k);
+meta: {}
+children: [576]
+content: 
+ sum += compute_value(k);
+
+id: 576
+type: TOKEN_TYPE.TARGET
+line_start: sum
+meta: {}
+children: [628]
+content: 
+ sum += compute_value(k);
+
+id: 628
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: sum
+meta: {}
+children: []
+content: 
+ sum += compute_value(k);
+
+id: 49
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.TEAMS
+keywords: ['TEAMS', 'DISTRIBUTE', 'PARALLEL', 'FOR', 'SIMD', 'SIMDLEN']
+META: {<PRAGMA_KEYWORDS.SIMDLEN: 'simdlen'>: '4'}
+line_start: #pragma omp target teams distribute parallel for simd simdlen(4)
+children: [371]
+content: 
+ #pragma omp target teams distribute parallel for simd simdlen(4)
+for (int l = 0; l < M; ++l) {
+matrix[1][l] = compute_value(l);
+}
+
+id: 371
+type: TOKEN_TYPE.FOR
+line_start: for (int l = 0; l < M; ++l) {
+meta: {}
+children: [143, 760]
+content: 
+ for (int l = 0; l < M; ++l) {
+matrix[1][l] = compute_value(l);
+}
+
+id: 143
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int l = 0; l < M; ++l) {
+meta: {}
+children: [94, 127, 695]
+content: 
+ for (int l = 0; l < M; ++l) {
+
+id: 94
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int l = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'l'}
+children: []
+content: 
+ for (int l = 0; l < M; ++l) {
+
+id: 127
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: l < M
+meta: {}
+children: []
+content: 
+ for (int l = 0; l < M; ++l) {
+
+id: 695
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++l
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'l', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int l = 0; l < M; ++l) {
+
+id: 760
+type: TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT
+line_start: matrix[1][l] = compute_value(l);
+meta: {}
+children: [217, 641, 319]
+content: 
+ matrix[1][l] = compute_value(l);
+
+id: 217
+type: TOKEN_TYPE.TARGET
+line_start: matrix[1][l]
+meta: {}
+children: [141]
+content: 
+ matrix[1][l] = compute_value(l);
+
+id: 141
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: matrix[1][l]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'matrix', <TOKEN_TYPE.ARRAY_INDEX: 45>: '1'}
+children: []
+content: 
+ matrix[1][l] = compute_value(l);
+
+id: 641
+type: TOKEN_TYPE.FUNCTION_NAME
+line_start: compute_value
+meta: {}
+children: []
+content: 
+ matrix[1][l] = compute_value(l);
+
+id: 319
+type: TOKEN_TYPE.FUNCTION_PARAMETERS
+line_start: l
+meta: {}
+children: [824]
+content: 
+ matrix[1][l] = compute_value(l);
+
+id: 824
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: l
+meta: {}
+children: [795]
+content: 
+ l
+
+id: 795
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: l
+meta: {}
+children: []
+content: 
+ l
+
+id: 343
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.TEAMS
+keywords: ['TEAMS', 'DISTRIBUTE', 'PARALLEL', 'FOR']
+META: {}
+line_start: #pragma omp target teams distribute parallel for
+children: [376]
+content: 
+ #pragma omp target teams distribute parallel for
+for (int m = 0; m < N; ++m) {
+for (int n = 0; n < M; ++n) {
+matrix[m][n] = compute_value(m, n);
+}
+}
+
+id: 376
+type: TOKEN_TYPE.FOR
+line_start: for (int m = 0; m < N; ++m) {
+meta: {}
+children: [463, 415]
+content: 
+ for (int m = 0; m < N; ++m) {
+for (int n = 0; n < M; ++n) {
+matrix[m][n] = compute_value(m, n);
+}
+}
+
+id: 463
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int m = 0; m < N; ++m) {
+meta: {}
+children: [498, 988, 107]
+content: 
+ for (int m = 0; m < N; ++m) {
+
+id: 498
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int m = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'm'}
+children: []
+content: 
+ for (int m = 0; m < N; ++m) {
+
+id: 988
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: m < N
+meta: {}
+children: []
+content: 
+ for (int m = 0; m < N; ++m) {
+
+id: 107
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++m
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'm', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int m = 0; m < N; ++m) {
+
+id: 415
+type: TOKEN_TYPE.FOR
+line_start: for (int n = 0; n < M; ++n) {
+meta: {}
+children: [703, 300]
+content: 
+ for (int n = 0; n < M; ++n) {
+matrix[m][n] = compute_value(m, n);
+}
+
+id: 703
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int n = 0; n < M; ++n) {
+meta: {}
+children: [351, 100, 34]
+content: 
+ for (int n = 0; n < M; ++n) {
+
+id: 351
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int n = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'n'}
+children: []
+content: 
+ for (int n = 0; n < M; ++n) {
+
+id: 100
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: n < M
+meta: {}
+children: []
+content: 
+ for (int n = 0; n < M; ++n) {
+
+id: 34
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++n
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'n', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int n = 0; n < M; ++n) {
+
+id: 300
+type: TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT
+line_start: matrix[m][n] = compute_value(m, n);
+meta: {}
+children: [974, 414, 388]
+content: 
+ matrix[m][n] = compute_value(m, n);
+
+id: 974
+type: TOKEN_TYPE.TARGET
+line_start: matrix[m][n]
+meta: {}
+children: [653]
+content: 
+ matrix[m][n] = compute_value(m, n);
+
+id: 653
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: matrix[m][n]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'matrix', <TOKEN_TYPE.ARRAY_INDEX: 45>: 'm'}
+children: []
+content: 
+ matrix[m][n] = compute_value(m, n);
+
+id: 414
+type: TOKEN_TYPE.FUNCTION_NAME
+line_start: compute_value
+meta: {}
+children: []
+content: 
+ matrix[m][n] = compute_value(m, n);
+
+id: 388
+type: TOKEN_TYPE.FUNCTION_PARAMETERS
+line_start: m, n
+meta: {}
+children: [520, 727]
+content: 
+ matrix[m][n] = compute_value(m, n);
+
+id: 520
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: m
+meta: {}
+children: [476]
+content: 
+ m, n
+
+id: 476
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: m
+meta: {}
+children: []
+content: 
+ m, n
+
+id: 727
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: n
+meta: {}
+children: [454]
+content: 
+ m, n
+
+id: 454
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: n
+meta: {}
+children: []
+content: 
+ m, n
+
+id: 21
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.TEAMS
+keywords: ['TEAMS', 'DISTRIBUTE', 'PARALLEL', 'FOR']
+META: {}
+line_start: #pragma omp target teams distribute parallel for
+children: [657]
+content: 
+ #pragma omp target teams distribute parallel for
+for (int p = 0; p < N; ++p) {
+for (int q = 0; q < M; ++q) {
+for (int r = 0; r < P; ++r) {
+tensor[p][q][r] = compute_value(p, q, r);
+}
+}
+}
+
+id: 657
+type: TOKEN_TYPE.FOR
+line_start: for (int p = 0; p < N; ++p) {
+meta: {}
+children: [980, 585]
+content: 
+ for (int p = 0; p < N; ++p) {
+for (int q = 0; q < M; ++q) {
+for (int r = 0; r < P; ++r) {
+tensor[p][q][r] = compute_value(p, q, r);
+}
+}
+}
+
+id: 980
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int p = 0; p < N; ++p) {
+meta: {}
+children: [522, 843, 805]
+content: 
+ for (int p = 0; p < N; ++p) {
+
+id: 522
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int p = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'p'}
+children: []
+content: 
+ for (int p = 0; p < N; ++p) {
+
+id: 843
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: p < N
+meta: {}
+children: []
+content: 
+ for (int p = 0; p < N; ++p) {
+
+id: 805
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++p
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'p', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int p = 0; p < N; ++p) {
+
+id: 585
+type: TOKEN_TYPE.FOR
+line_start: for (int q = 0; q < M; ++q) {
+meta: {}
+children: [588, 85]
+content: 
+ for (int q = 0; q < M; ++q) {
+for (int r = 0; r < P; ++r) {
+tensor[p][q][r] = compute_value(p, q, r);
+}
+}
+
+id: 588
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int q = 0; q < M; ++q) {
+meta: {}
+children: [194, 1, 859]
+content: 
+ for (int q = 0; q < M; ++q) {
+
+id: 194
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int q = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'q'}
+children: []
+content: 
+ for (int q = 0; q < M; ++q) {
+
+id: 1
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: q < M
+meta: {}
+children: []
+content: 
+ for (int q = 0; q < M; ++q) {
+
+id: 859
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++q
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'q', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int q = 0; q < M; ++q) {
+
+id: 85
+type: TOKEN_TYPE.FOR
+line_start: for (int r = 0; r < P; ++r) {
+meta: {}
+children: [148, 183]
+content: 
+ for (int r = 0; r < P; ++r) {
+tensor[p][q][r] = compute_value(p, q, r);
+}
+
+id: 148
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int r = 0; r < P; ++r) {
+meta: {}
+children: [954, 340, 790]
+content: 
+ for (int r = 0; r < P; ++r) {
+
+id: 954
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int r = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 'r'}
+children: []
+content: 
+ for (int r = 0; r < P; ++r) {
+
+id: 340
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: r < P
+meta: {}
+children: []
+content: 
+ for (int r = 0; r < P; ++r) {
+
+id: 790
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++r
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 'r', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int r = 0; r < P; ++r) {
+
+id: 183
+type: TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT
+line_start: tensor[p][q][r] = compute_value(p, q, r);
+meta: {}
+children: [329, 120, 456]
+content: 
+ tensor[p][q][r] = compute_value(p, q, r);
+
+id: 329
+type: TOKEN_TYPE.TARGET
+line_start: tensor[p][q][r]
+meta: {}
+children: [379]
+content: 
+ tensor[p][q][r] = compute_value(p, q, r);
+
+id: 379
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: tensor[p][q][r]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'tensor', <TOKEN_TYPE.ARRAY_INDEX: 45>: 'p'}
+children: []
+content: 
+ tensor[p][q][r] = compute_value(p, q, r);
+
+id: 120
+type: TOKEN_TYPE.FUNCTION_NAME
+line_start: compute_value
+meta: {}
+children: []
+content: 
+ tensor[p][q][r] = compute_value(p, q, r);
+
+id: 456
+type: TOKEN_TYPE.FUNCTION_PARAMETERS
+line_start: p, q, r
+meta: {}
+children: [800, 303, 116]
+content: 
+ tensor[p][q][r] = compute_value(p, q, r);
+
+id: 800
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: p
+meta: {}
+children: [651]
+content: 
+ p, q, r
+
+id: 651
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: p
+meta: {}
+children: []
+content: 
+ p, q, r
+
+id: 303
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: q
+meta: {}
+children: [50]
+content: 
+ p, q, r
+
+id: 50
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: q
+meta: {}
+children: []
+content: 
+ p, q, r
+
+id: 116
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: r
+meta: {}
+children: [306]
+content: 
+ p, q, r
+
+id: 306
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: r
+meta: {}
+children: []
+content: 
+ p, q, r
+
+id: 649
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.TEAMS
+keywords: ['TEAMS', 'DISTRIBUTE', 'PARALLEL', 'FOR', 'SCHEDULE']
+META: {<PRAGMA_KEYWORDS.SCHEDULE: 'schedule'>: 'dynamic'}
+line_start: #pragma omp target teams distribute parallel for schedule(dynamic)
+children: [651]
+content: 
+ #pragma omp target teams distribute parallel for schedule(dynamic)
+for (int s = 0; s < N; ++s) {
+matrix[2][s] = compute_value(s);
+}
+
+id: 651
+type: TOKEN_TYPE.FOR
+line_start: for (int s = 0; s < N; ++s) {
+meta: {}
+children: [211, 65]
+content: 
+ for (int s = 0; s < N; ++s) {
+matrix[2][s] = compute_value(s);
+}
+
+id: 211
+type: TOKEN_TYPE.FOR_BODY
+line_start: for (int s = 0; s < N; ++s) {
+meta: {}
+children: [888, 266, 518]
+content: 
+ for (int s = 0; s < N; ++s) {
+
+id: 888
+type: TOKEN_TYPE.FOR_INITIALISATION
+line_start: int s = 0
+meta: {<TOKEN_TYPE.TYPE: 13>: 'int', <TOKEN_TYPE.VARIABLE_NAME: 25>: 's'}
+children: []
+content: 
+ for (int s = 0; s < N; ++s) {
+
+id: 266
+type: TOKEN_TYPE.FOR_CONDITION
+line_start: s < N
+meta: {}
+children: []
+content: 
+ for (int s = 0; s < N; ++s) {
+
+id: 518
+type: TOKEN_TYPE.FOR_OPERATION
+line_start: ++s
+meta: {<TOKEN_TYPE.VARIABLE_NAME: 25>: 's', <TOKEN_TYPE.PRE_INCREMENT: 18>: '++'}
+children: []
+content: 
+ for (int s = 0; s < N; ++s) {
+
+id: 65
+type: TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT
+line_start: matrix[2][s] = compute_value(s);
+meta: {}
+children: [470, 717, 294]
+content: 
+ matrix[2][s] = compute_value(s);
+
+id: 470
+type: TOKEN_TYPE.TARGET
+line_start: matrix[2][s]
+meta: {}
+children: [506]
+content: 
+ matrix[2][s] = compute_value(s);
+
+id: 506
+type: TOKEN_TYPE.ARRAY_ELEMENT
+line_start: matrix[2][s]
+meta: {<TOKEN_TYPE.ARRAY_NAME: 34>: 'matrix', <TOKEN_TYPE.ARRAY_INDEX: 45>: '2'}
+children: []
+content: 
+ matrix[2][s] = compute_value(s);
+
+id: 717
+type: TOKEN_TYPE.FUNCTION_NAME
+line_start: compute_value
+meta: {}
+children: []
+content: 
+ matrix[2][s] = compute_value(s);
+
+id: 294
+type: TOKEN_TYPE.FUNCTION_PARAMETERS
+line_start: s
+meta: {}
+children: [857]
+content: 
+ matrix[2][s] = compute_value(s);
+
+id: 857
+type: TOKEN_TYPE.FUNCTION_PARAMETER
+line_start: s
+meta: {}
+children: [705]
+content: 
+ s
+
+id: 705
+type: TOKEN_TYPE.VARIABLE_NAME
+line_start: s
+meta: {}
+children: []
+content: 
+ s
+
+id: 610
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_EXIT
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target exit data map(to: array[0:N])
+children: []
+content: 
+ #pragma omp target exit data map(to: array[0:N])
+
+id: 798
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_EXIT
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target exit data map(to: matrix[0:M*M])
+children: []
+content: 
+ #pragma omp target exit data map(to: matrix[0:M*M])
+
+id: 987
+type: TOKEN_TYPE.PRAGMA
+level: 1
+pragma_type: PRAGMA_TOKEN_TYPE.DATA_EXIT
+keywords: ['DATA', 'MAP']
+META: {}
+line_start: #pragma omp target exit data map(to: tensor[0:P*P*P])
+children: []
+content: 
+ #pragma omp target exit data map(to: tensor[0:P*P*P])
+
+==========RULES==========
+
+
+RULE simd_len was applied!
+
+PARAMS:
+[]
+==========CODE==========
+
+
+#define N 1000
+#define M 1000
+#define P 1000
+
+extern "C" float compute_values(int N, int M, int P, double *array, double **matrix, double ***tensor) {
+
+#pragma omp target enter data map(to: array[0:N])
+#pragma omp target enter data map(to: matrix[0:M*M])
+#pragma omp target enter data map(to: tensor[0:P*P*P])
+
+double sum = 0.0;
+
+// Rule: Add simdlen(1) - Applicable
+#pragma omp target  teams distribute parallel for simd simdlen(1)
+for (int i = 0; i < N; ++i) {
+array[i] = compute_value(i);
+}
+
+// Rule: Add chunk size - Applicable
+#pragma omp target teams distribute parallel for schedule(static)
+for (int j = 0; j < M; ++j) {
+matrix[0][j] = compute_value(j);
+}
+
+// Rule: Add teams and thread limit - Applicable
+#pragma omp target parallel for reduction(+:sum)
+for (int k = 0; k < P; ++k) {
+sum += compute_value(k);
+}
+
+// Rule: Add simdlen(1) - Not applicable (already specified)
+#pragma omp target teams distribute parallel for simd simdlen(4)
+for (int l = 0; l < M; ++l) {
+matrix[1][l] = compute_value(l);
+}
+
+// Rule: Remove target - Not applicable
+#pragma omp target teams distribute parallel for
+for (int m = 0; m < N; ++m) {
+for (int n = 0; n < M; ++n) {
+matrix[m][n] = compute_value(m, n);
+}
+}
+
+// Rule: Add simdlen(1) - Not applicable (no simd directive)
+#pragma omp target teams distribute parallel for
+for (int p = 0; p < N; ++p) {
+for (int q = 0; q < M; ++q) {
+for (int r = 0; r < P; ++r) {
+tensor[p][q][r] = compute_value(p, q, r);
+}
+}
+}
+
+// Rule: Add chunk size - Not applicable (dynamic schedule)
+#pragma omp target teams distribute parallel for schedule(dynamic)
+for (int s = 0; s < N; ++s) {
+matrix[2][s] = compute_value(s);
+}
+
+#pragma omp target exit data map(to: array[0:N])
+#pragma omp target exit data map(to: matrix[0:M*M])
+#pragma omp target exit data map(to: tensor[0:P*P*P])
+}
+
+

@@ -44,7 +44,7 @@ def tune_hyper_params(target_strategy, hyper_params, *args, **kwargs):
     kwargs['strategy'] = 'brute_force'
 
     #last position argument is tune_params
-    tune_params = args[-1]
+    tune_params = args[-2]
 
     #find optimum
     kwargs["strategy"] = "brute_force"

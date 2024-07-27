@@ -22,7 +22,7 @@ from .test_runners import env  # noqa: F401
 @skip_if_no_pynvml
 def test_nvml_observer(env):
     nvmlobserver = NVMLObserver(["nvml_energy", "temperature"])
-    env[-1]["block_size_x"] = [128]
+    env[-2]["block_size_x"] = [128]
 
     result, _ = kernel_tuner.tune_kernel(*env, observers=[nvmlobserver])
 
@@ -32,7 +32,7 @@ def test_nvml_observer(env):
 
 @skip_if_no_pycuda
 def test_custom_observer(env):
-    env[-1]["block_size_x"] = [128]
+    env[-2]["block_size_x"] = [128]
 
     class MyObserver(BenchmarkObserver):
         def get_results(self):

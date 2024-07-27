@@ -35,7 +35,7 @@ def env():
     tune_params = dict()
     tune_params["block_size_x"] = [128 + 64 * i for i in range(15)]
 
-    return ["vector_add", kernel_string, size, args, tune_params]
+    return ["vector_add", kernel_string, size, tune_params, args]
 
 
 @skip_if_no_pycuda
@@ -56,7 +56,7 @@ def test_sequential_runner_alt_block_size_names(env):
     }
 
     env[1] = kernel_string
-    env[-1] = tune_params
+    env[-2] = tune_params
 
     ref = (env[3][1] + env[3][2]).astype(np.float32)
     answer = [ref, None, None, None]
@@ -76,13 +76,13 @@ def test_smem_args(env):
     result, _ = tune_kernel(*env,
                             smem_args=dict(size="block_size_x*4"),
                             verbose=True)
-    tune_params = env[-1]
+    tune_params = env[-2]
     assert len(result) == len(tune_params["block_size_x"])
     result, _ = tune_kernel(
         *env,
         smem_args=dict(size=lambda p: p['block_size_x'] * 4),
         verbose=True)
-    tune_params = env[-1]
+    tune_params = env[-2]
     assert len(result) == len(tune_params["block_size_x"])
 
 
@@ -93,12 +93,12 @@ def test_build_cache(env):
                                 cache=cache_filename,
                                 verbose=False,
                                 quiet=True)
-        tune_params = env[-1]
+        tune_params = env[-2]
         assert len(result) == len(tune_params["block_size_x"])
 
 
 def test_simulation_runner(env):
-    kernel_name, kernel_string, size, args, tune_params = env
+    kernel_name, kernel_string, size, tune_params, args = env
     start = time.perf_counter()
     result, res_env = tune_kernel(*env,
                                   cache=cache_filename,
