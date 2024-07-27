@@ -123,6 +123,10 @@ tomli = "^2.0.1"      # held back by Python <= 3.10, can be replaced by built-in
 # # ATTENTION: if anything is changed here, run `poetry update`
 # [tool.poetry.group.dev.dependencies]
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.1"
+
 [tool.pytest.ini_options]
 minversion = "7.4"
 pythonpath = [

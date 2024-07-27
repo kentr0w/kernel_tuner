@@ -8,7 +8,7 @@ class Context:
 
   def __init__(self, initial_code: Code, initial_tune_params: PragmaTuneParams):
     self.initial_code = initial_code
-    self.default_tune_params = initial_tune_params
+    self.default_tune_params = copy.deepcopy(initial_tune_params)
     self.propositions: dict[str, Code] = {}
     self.tune_params: dict[str, PragmaTuneParams] = {}
 
@@ -27,7 +27,7 @@ class Context:
   ):
     self.propositions[rule_id] = proposition_code
     if rule_id not in self.tune_params:
-      self.tune_params[rule_id] = self.default_tune_params
+      self.tune_params[rule_id] = copy.deepcopy(self.default_tune_params)
 
   def offer_with_new_lines(
       self, 
@@ -37,7 +37,10 @@ class Context:
     ):
     if len(old_lines) != len(new_lines):
       return
-    proposition_code = copy.deepcopy(self.initial_code)
+    if rule_id in self.propositions:
+      proposition_code = self.propositions[rule_id]
+    else:
+      proposition_code = copy.deepcopy(self.initial_code)
     for idx, line in enumerate(proposition_code.initial_lines):
       for old_idx, old in enumerate(old_lines):
         if line.line_number == old.line_number:
@@ -48,8 +51,8 @@ class Context:
 
   def offer_with_new_token(
       self, 
-      old_tokens: list[PragmaToken], 
-      new_tokens: list[PragmaToken], 
+      old_tokens: list[PragmaToken],
+      new_tokens: list[PragmaToken],
       rule_id: str
     ):
     self.offer_with_new_lines(
@@ -64,34 +67,32 @@ class Context:
       old_token: PragmaToken,
       new_token: PragmaToken,
       rule_id: str,
-      pragma_tune_params: PragmaTuneParams
     ):
     if rule_id in self.propositions:
-      proposition_code = self.propositions[rule_id][0]
+      proposition_code = self.propositions[rule_id]
     else:
       proposition_code = copy.deepcopy(self.initial_code)
     for idx, line in enumerate(proposition_code.initial_lines):
       if line.line_number == old_token.initial_line.line_number:
         proposition_code.initial_lines = proposition_code.initial_lines[:idx] + new_token.content.lines + proposition_code.initial_lines[idx + len(old_token.content.lines):]
         break
-    self.__append(rule_id, proposition_code, pragma_tune_params)
+    self.__append(rule_id, proposition_code)
 
   def offer_with_add_pragma_above(
       self,
       old_token: PragmaToken,
       new_token: PragmaToken,
-      rule_id: str,
-      pragma_tune_params: PragmaTuneParams
+      rule_id: str
   ):
     if rule_id in self.propositions:
-      proposition_code = self.propositions[rule_id][0]
+      proposition_code = self.propositions[rule_id]
     else:
       proposition_code = copy.deepcopy(self.initial_code)
     for idx, line in enumerate(proposition_code.initial_lines):
       if line.line_number == old_token.initial_line.line_number:
         proposition_code.initial_lines.insert(idx, new_token.initial_line)
         break
-    self.__append(rule_id, proposition_code, pragma_tune_params)
+    self.__append(rule_id, proposition_code)
 
 
   def offer_with_line_token(self, old_line: Line, new_token: PragmaToken):
@@ -110,9 +111,9 @@ class Context:
     name_prefix: str
   ) -> str:
     if rule_id not in self.tune_params:
-      self.tune_params[rule_id] = self.default_tune_params
-    if pragma_keyword in list(map(lambda x: x[0], self.tune_params[rule_id])):
-      raise Exception("Same token type already in map")
+      self.tune_params[rule_id] = copy.deepcopy(self.default_tune_params)
+    # if pragma_keyword in list(map(lambda x: x[0], self.tune_params[rule_id])):
+    #   raise Exception("Same token type already in map")
     names = list(map(lambda x: x[1], self.tune_params[rule_id]))
     name = name_prefix
     while name in names:
@@ -125,7 +126,7 @@ class Context:
     if rule_id in self.propositions:
       if rule_id in self.tune_params:
         return (self.propositions[rule_id], self.tune_params[rule_id])
-      return (self.propositions[rule_id], self.default_tune_params)
+      return (self.propositions[rule_id], copy.deepcopy(self.default_tune_params))
     return None
 
   def print_propositions(self):

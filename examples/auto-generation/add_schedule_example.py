@@ -33,6 +33,7 @@ auto_tune_kernel(
     code,
     0,
     tune_params=tune_params,
+    # rules=['add_schedule'],
     compiler_options=["-fopenmp", "-mp=gpu"],
     compiler="nvc++",
     directive=directive

@@ -9,12 +9,14 @@ import kernel_tuner.generation.utils.util as util
 from kernel_tuner.generation.utils.patterns import operation_types
 
 
-class AddReductionRule(RuleABC):
+class AddReductionClauseRule(RuleABC):
 
   def __init__(self, tree: Tree, context: Context, initial_params: util.PragmaTuneParams):
     super().__init__(tree, context, initial_params)
+    self.rule_id = 'reduction'
 
   def run(self, debug_file=None):
+    print("hey!")
     pragmas = util.filter_pragmas_contains_keyword(self.tree.pragma_tokens, [PRAGMA_KEYWORDS.PARALLEL, PRAGMA_KEYWORDS.FOR], [PRAGMA_KEYWORDS.REDUCTION])
     pragmas_with_for_as_child = util.filter_pragmas_contains_child(pragmas, TOKEN_TYPE.FOR)
     for pragma_with_for_as_child in pragmas_with_for_as_child:
@@ -35,17 +37,17 @@ class AddReductionRule(RuleABC):
         continue
       if varialbe_reassignment.type == TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT:
         left_operand = varialbe_reassignment.find_first(TOKEN_TYPE.LEFT_OPERAND)
-        if not left_operand or left_operand != target: # check the name? 
+        if not left_operand or left_operand.line.content != target.line.content:
           continue
       pragma_with_for_as_child.modify_keywords(
         [PRAGMA_KEYWORDS.REDUCTION],
         {PRAGMA_KEYWORDS.REDUCTION: f"{operation.line.content}:{target.line.content}"}
       )
 
-      self.context.offer_with_new_token([pragma_with_for_as_child], [pragma_with_for_as_child], self.rule_id, self.generate_param())
+      self.context.offer_with_new_token([pragma_with_for_as_child], [pragma_with_for_as_child], self.rule_id)
 
-  def generate_param(self) -> util.PragmaTuneParams:
-    return self.initial_params
+  def generate_param(self) -> str:
+    pass
 
 """
 

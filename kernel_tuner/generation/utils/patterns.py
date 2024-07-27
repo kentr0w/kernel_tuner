@@ -13,15 +13,44 @@ for_operation_pattern = re.compile(r'(\+\+|--)?([a-zA-Z_][a-zA-Z0-9_]*)(\+\+|--)
 
 #==============ASSIGNMENT==============
 variable_initialisation_pattern = re.compile(r'^\b(?:int|float|double|char|long|short)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^;]*;')
-long_reassignment_pattern = re.compile(r'^(?!\s*(?:int|float|double|char|long|short)\s)\b[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*=\s*[^;]*;')
-short_reassignment_pattern = re.compile(r'^(?!\s*(?:int|float|double|char|long|short)\s)\b[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:[+\-*%&|^]=|&&=|\|\|=|=)\s*[^;]*;')
+variable_reassignment_pattern = re.compile(
+    r'^(?!\s*(?:int|float|double|char|long|short)\s)'  # Exclude type declarations
+    r'(?P<target>[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:\[[^\]]*\])?)\s*'  # Match variable or array element
+    r'=\s*'  # Match the assignment operator
+    r'(?P<value>[a-zA-Z_][a-zA-Z0-9_\[\]]*|\d+)\s*;'  # Match a single variable or number
+)
+long_reassignment_pattern = re.compile(
+    r'^(?!\s*(?:int|float|double|char|long|short)\s)'  # Ensure it doesn't start with a type declaration
+    r'(?P<target>[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:\[[^\]]*\])?)\s*'  # Match the left operand (variable or array element)
+    r'(?P<operation>=|\+=|-=|\*=|/=|%=|&=|\|=|\^=)\s*'  # Match the assignment operator or compound assignment operator
+    r'(?P<expression>'  # Begin capturing the right operand expression
+    r'(?:[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:\[[^\]]*\])?|[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)|\d+)'  # Match variable, array element, function call, or number
+    r'(?:\s*[\+\-\*\/%&\|^]\s*'  # Match an operator
+    r'(?:[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:\[[^\]]*\])?|[a-zA-Z_][a-zA-Z0-9_]*\s*\([^)]*\)|\d+))*'  # Match multiple operands
+    r')\s*;'  # Match the semicolon at the end
+)
+short_reassignment_pattern = re.compile(r'^(?!\s*(?:int|float|double|char|long|short)\s)\b[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:[+\-*/%&|^]=|&&=|\|\|=|=)\s*[^;]*;')
+function_reassignment_pattern = re.compile(r'^(?!\s*(?:int|float|double|char|long|short)\s)\b[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*=\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\([^;]*\);')
 
-right_part_long_reassignment_pattern = re.compile(r'(?P<left_operand>[a-zA-Z_][a-zA-Z0-9_\[\]]*)\s*(?P<operation>\+|\-|\*|\/|%|&|\||\^|&&|\|\|)\s*(?P<right_operand>[a-zA-Z_][a-zA-Z0-9_\[\]]*(\s*\([^)]*\))?|\d+)\s*;')
+right_part_long_reassignment_pattern = re.compile(
+    r'^(?P<left_operand>'  # Start capturing left operand
+    r'(?:[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:\[[^\]]*\])?)|'  # Match variable or array element
+    r'(?:\d+)|'  # Match number
+    r'(?:[a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\))'  # Match function call
+    r'\s*(?P<operation>\+|\-|\*|\/|%|&|\||\^|&&|\|\|)\s*'  # Match operation
+    r'(?P<right_operand>'  # Start capturing right operand
+    r'(?:[a-zA-Z_][a-zA-Z0-9_\[\]]*\s*(?:\[[^\]]*\])?)|'  # Match variable or array element
+    r'(?:\d+)|'  # Match number
+    r'(?:[a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\))'  # Match function call
+    r'\s*;$'  # Match the semicolon at the end
+)
 right_part_short_reassignment_pattern = re.compile(r'(?P<target>[a-zA-Z_][a-zA-Z0-9_\[\]]*)\s*(?P<operation>[+\-*&|^]=|&&=|\|\|=)\s*(?P<right_operand>[^;]+);')
+right_part_function_reassignment_pattern = re.compile(r'(?P<target>[a-zA-Z_][a-zA-Z0-9_\[\]]*)\s*=\s*(?P<function_name>[a-zA-Z_][a-zA-Z0-9_]*)\s*\((?P<parameters>[^;]*)\);')
 
 #==============FUNCTION==============
 function_call_pattern = re.compile(r'^\b[a-zA-Z_][a-zA-Z0-9_]*\s*\([^;{}]*\)\s*;?\s*$', re.DOTALL | re.MULTILINE)
 function_start_call_patter = re.compile(r'^\b[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*$')
+function_call_parameters_pattern = re.compile(r'(?P<function_name>[a-zA-Z_][a-zA-Z0-9_]*)\s*\((?P<parameters>[^;]*)\);')
 
 
 

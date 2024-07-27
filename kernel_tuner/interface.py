@@ -746,7 +746,7 @@ def auto_tune_kernel(
     kernel_name,
     kernel_source,
     problem_size,
-    tune_params,
+    tune_params = None,
     rules = list(rule_map.keys()),
     validate_rules=True,
     exclude_rules = [],
@@ -791,7 +791,7 @@ def auto_tune_kernel(
     kernel_options = Options([(k, opts[k]) for k in _kernel_options.keys()])
     device_options = Options([(k, opts[k]) for k in _device_options.keys()])
     
-    generated_sources = generate_kernel_sources(initial_kernel_source, tune_params, rules, exclude_rules, debug_file)
+    generated_sources = generate_kernel_sources(initial_kernel_source, rules, exclude_rules, tune_params, debug_file)
     
     strategy = brute_force
     
@@ -799,7 +799,7 @@ def auto_tune_kernel(
     for (generated_code, generated_tune_params) in generated_sources:
         
         kernelsource = core.KernelSource(kernel_name, generated_code.to_text(), lang, defines)
-        tune_params = generated_tune_params        
+        tune_params = generated_tune_params
 
         opts = locals()
         tuning_options = Options([(k, opts[k]) for k in _tuning_options.keys()])

@@ -4,6 +4,7 @@ from kernel_tuner.generation.token.code_token import *
 from kernel_tuner.generation.code.line import Line
 from kernel_tuner.generation.code.code import Code, CodeBlock
 from kernel_tuner.util import write_file
+import copy
 
 class Tree:
 
@@ -53,11 +54,11 @@ class TreeBuilder:
   def __init__(self, code: Code) -> None:
     self.tree_root = PragmaToken(Line('', 0), 0)
     self.node_map = {0: self.tree_root}
-    self.current_level = 1
+    self.current_level = 0
     self.current_bracket_level = 0
     self.last_bracket_level = 0
     self.code = code
-    self.pragma_tokens = []
+    self.pragma_tokens: list[PragmaToken] = []
     self.idx = 0
 
   def build_tree(self):
@@ -87,7 +88,7 @@ class TreeBuilder:
 
 
   def __build_pragma_token(self, line) -> PragmaToken:
-    if self.code.lines[self.idx-1].startswith('#pragma omp') and not self.pragma_tokens[len(self.pragma_tokens)-1].type.is_data():
+    if self.code.lines[self.idx-1].startswith('#pragma omp') and not self.pragma_tokens[len(self.pragma_tokens)-1].pragma_type.is_data():
       self.current_level+=1
     else:
       if self.current_bracket_level > self.last_bracket_level:
@@ -108,7 +109,7 @@ class TreeBuilder:
             break          
         self.idx-=1
 
-    node = PragmaToken(line, self.current_bracket_level)
+    node = PragmaToken(line, self.current_level)
     return node
 
 

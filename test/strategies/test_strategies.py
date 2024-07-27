@@ -30,7 +30,7 @@ def vector_add():
     tune_params = dict()
     tune_params["block_size_x"] = [128 + 64 * i for i in range(15)]
 
-    return ["vector_add", kernel_string, size, args, tune_params]
+    return ["vector_add", kernel_string, size, tune_params, args]
 
 
 @pytest.mark.parametrize('strategy', strategy_map)
@@ -53,7 +53,7 @@ def test_strategies(vector_add, strategy):
 
     # check if the number of valid unique configurations is less than or equal to max_fevals
     if not strategy == "brute_force":
-        tune_params = vector_add[-1]
+        tune_params = vector_add[-2]
         unique_results = {}
         for result in results:
             x_int = ",".join([str(v) for k, v in result.items() if k in tune_params])

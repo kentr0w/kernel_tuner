@@ -38,19 +38,35 @@ class PragmaToken(Token):
     else:
       self.pragma_children.append(child)
 
+  # TODO it's not correct rn
+  def update_content(self):
+    self.content = CodeBlock([self.initial_line] + self.pragma_children[0].content.lines)
+
   def remove_child(self, child):
         super().remove_child(child)
+
+  def parents(self) -> list[PragmaToken]:
+    tmp_node = self.parent
+    result = []
+    while(tmp_node):
+      if tmp_node.type == TOKEN_TYPE.PRAGMA:
+        result.append(tmp_node)
+      tmp_node = tmp_node.parent
+    return result
 
   def modify_keywords(
       self, 
       new_keywords: list[PRAGMA_KEYWORDS],
       meta: dict[PRAGMA_KEYWORDS, str] = {},
-      replace_keywords: list[PRAGMA_KEYWORDS] = []
+      replace_keywords: list[PRAGMA_KEYWORDS] = [],
+      new_target: bool|None = None
     ):
     new_kw = list(filter(lambda x: x not in replace_keywords, self.keywords))
     new_kw += [x for x in new_keywords if x not in new_kw]
     self.keywords = new_kw
     self.meta.update(meta)
+    if new_target is not None:
+      self.is_target_used = new_target
     self.__rebuild()
 
   def find_first_pragma(self, type: PRAGMA_TOKEN_TYPE) -> PragmaToken|None:
@@ -78,6 +94,8 @@ class PragmaToken(Token):
     self.__bfs_pragma(type, queue, results)
 
   def __detect__pragma_type(self) -> PRAGMA_TOKEN_TYPE:
+    if self.initial_line.content == '#pragma omp target':
+      return PRAGMA_TOKEN_TYPE.TARGET
     if self.line.startswith('enter data'):
       return PRAGMA_TOKEN_TYPE.DATA_ENTER
     elif self.line.startswith('exit data'):
@@ -115,6 +133,7 @@ class PragmaToken(Token):
         kws += f"({self.meta[kw]}) "
     target = " target " if self.is_target_used else ""
     self.initial_line = Line(f"#pragma omp{target}{kws}", self.initial_line.line_number)
+    self.content.lines[0] = self.initial_line
 
   def print(self, debug=False) -> str:
     result = f"id: {self.id}\n"

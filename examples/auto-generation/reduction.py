@@ -10,15 +10,25 @@ code = """
 #include <stdlib.h>
 #include <omp.h>
 
-#define VECTOR_SIZE 10000
+#define VECTOR_SIZE 1000
 
-void vector_add(float *a, float *b, float *c) {  
+void vector_add(float *a, float *b, float *c) {
 	#pragma tuner start vector_add a(float*:VECTOR_SIZE) b(float*:VECTOR_SIZE) c(float*:VECTOR_SIZE) size(int:VECTOR_SIZE)
-  int sum = 0;
-	#pragma omp target parallel num_threads(nthreads)
-	{
-    foo();
-    foo(a, 2);
+	#pragma omp target parallel for num_threads(nthreads)
+	for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+		c[i] = a[i] + b[i];
+	}
+
+    float sum = 0;
+    float sum_2 = 0;
+    #pragma omp parallel for
+	for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+		sum = sum + c[i];
+	}
+
+    #pragma omp parallel for
+	for ( int i = 0; i < VECTOR_SIZE; i++ ) {
+		sum_2 += c[i];
 	}
 	#pragma tuner stop
 }
@@ -28,13 +38,14 @@ void vector_add(float *a, float *b, float *c) {
 directive = DirectiveCode(OpenMP(), Cxx())
 
 tune_params = dict()
-tune_params["nthreads"] = [4, 8]
+tune_params["nthreads"] = [16, 32]
 
 auto_tune_kernel(
     "vector_add",
     code,
     0,
     tune_params=tune_params,
+    rules=['reduction'],
     compiler_options=["-fopenmp", "-mp=gpu"],
     compiler="nvc++",
     directive=directive

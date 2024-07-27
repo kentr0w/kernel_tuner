@@ -10,19 +10,19 @@ code = """
 #include <stdlib.h>
 #include <omp.h>
 
-#define VECTOR_SIZE 1000
+#define VECTOR_SIZE 10000
+#define DOUBLE_VECTOR_SIZE 100000000
 
-void vector_add(float *a, float *b, float *c) {
-	#pragma tuner start vector_add a(float*:VECTOR_SIZE) b(float*:VECTOR_SIZE) c(float*:VECTOR_SIZE) size(int:VECTOR_SIZE)
+void vector_add(float *a, float *b, float *c) {  
+	#pragma tuner start vector_add a(float*:DOUBLE_VECTOR_SIZE) b(float*:DOUBLE_VECTOR_SIZE) c(float*:DOUBLE_VECTOR_SIZE) size(int:DOUBLE_VECTOR_SIZE)
 	#pragma omp target parallel for num_threads(nthreads)
-	for ( int i = 0; i < VECTOR_SIZE; i++ ) {
-		c[i] = a[i] + b[i];
-	}
-  
-    #pragma omp target teams
-	for ( int i = 0; i < VECTOR_SIZE; i++ ) {
-		c[i] = a[i] + b[i];
-	}
+    for ( int i = 0; i < VECTOR_SIZE; i++ ) 
+    {
+        for ( int j = 0; j < VECTOR_SIZE; j++ )
+        {
+            c[i*VECTOR_SIZE + j] = a[i*VECTOR_SIZE + j] + b[i*VECTOR_SIZE + j];
+        }
+    }
 	#pragma tuner stop
 }
 """
@@ -31,16 +31,15 @@ void vector_add(float *a, float *b, float *c) {
 directive = DirectiveCode(OpenMP(), Cxx())
 
 tune_params = dict()
-tune_params["nthreads"] = [16, 32]
+tune_params["nthreads"] = [4, 8]
 
 auto_tune_kernel(
     "vector_add",
     code,
     0,
     tune_params=tune_params,
-    # rules=['teams_and_threads_limit'],
+    rules=['distribute_with_threads'],
     compiler_options=["-fopenmp", "-mp=gpu"],
     compiler="nvc++",
     directive=directive
 )
-

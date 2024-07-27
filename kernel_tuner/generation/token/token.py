@@ -4,9 +4,10 @@ from abc import ABC, abstractmethod
 from kernel_tuner.generation.code.line import Line
 from kernel_tuner.generation.code.code import Code, CodeBlock
 import random
+import copy
 
 class PRAGMA_TOKEN_TYPE(Enum):
-  ROOT = 1
+  ROOT = 1  
   DATA_ENTER = 2
   DATA_EXIT = 3
   TEAMS = 4
@@ -22,7 +23,7 @@ class PRAGMA_TOKEN_TYPE(Enum):
   UPDATE = 14
   MASTER = 15
   CRITICAL = 16
-  BARRIER = 17
+  BARRIER = 17 
   TASKWAIT = 18
   TASKGROUP = 19
   ATOMIC = 20
@@ -30,7 +31,8 @@ class PRAGMA_TOKEN_TYPE(Enum):
   ORDERED = 22
   CANCEL = 23
   THREADPRIVATE = 24
-  FOR = 25  
+  FOR = 25
+  TARGET = 26  
   UNKNOWN = 27
 
 
@@ -139,17 +141,22 @@ class TOKEN_TYPE(Enum):
   OPERATION_XOR=44
 
   ARRAY_INDEX = 45
+  FUNCTION_VARIABLE_REASSIGNMENT = 46
+  FUNCTION_PARAMETERS = 47
+  FUNCTION_PARAMETER = 48
+  FUNCTION_NAME = 49
+  VARIABLE_REASSIGNMENT = 50
 
 
 class Token(ABC):
 
   def __init__(self, line: Line, content: CodeBlock, type: TOKEN_TYPE):
-    self.line = line
+    self.line = copy.deepcopy(line)
     self.content = content
     self.type = type
     self.children: list[Token] = []
     self.parent: Token | None = None
-    self.id = random.randint(1, 100)
+    self.id = random.randint(1, 1000)
     pass
 
   def append_child(self, child):

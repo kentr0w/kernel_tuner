@@ -15,7 +15,7 @@ def test_store_output_file(env):
 
     try:
         results, _ = tune_kernel(*env, cache=cache_filename, simulation_mode=True)
-        tune_params = env[-1]
+        tune_params = env[-2]
 
         # run store_output_file
         store_output_file(filename, results, tune_params)

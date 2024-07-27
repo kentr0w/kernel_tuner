@@ -33,6 +33,7 @@ auto_tune_kernel(
     "vector_add",
     code,
     0,
+    # rules=['add_chunk_schedule'],
     tune_params=tune_params,
     compiler_options=["-fopenmp", "-mp=gpu"],
     compiler="nvc++",

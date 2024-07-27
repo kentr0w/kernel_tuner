@@ -11,6 +11,7 @@ class RemoveTargetRule(RuleABC):
 
   def __init__(self, tree: Tree, context: Context, initial_params: PragmaTuneParams):
     super().__init__(tree, context, initial_params)
+    self.rule_id = 'no_target'
 
 
   def run(self, debug_file=None):

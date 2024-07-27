@@ -23,6 +23,7 @@ void vector_add(float *a, float *b, float *c) {
 }
 """
 
+
 # Extract tunable directive
 directive = DirectiveCode(OpenMP(), Cxx())
 
@@ -34,7 +35,7 @@ auto_tune_kernel(
     code,
     0,
     tune_params=tune_params,
-    rules=['no_target'],
+    # rules=['no_target'],
     compiler_options=["-fopenmp", "-mp=gpu"],
     compiler="nvc++",
     directive=directive

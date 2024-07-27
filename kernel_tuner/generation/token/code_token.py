@@ -77,15 +77,32 @@ class CodeToken(Token):
       code_tokens = build_for_body_content(self.line, self.content)
       for code_token in code_tokens:
         self.append_child(code_token)
+    elif self.type == TOKEN_TYPE.VARIABLE_REASSIGNMENT:
+      code_tokens = build_variable_reassignment_content(self.line, self.content)
+      for code_token in code_tokens:
+        self.append_child(code_token)
     elif self.type == TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT:
       code_tokens = build_long_varialbe_reassignment_content(self.line, self.content)
       for code_token in code_tokens:
         self.append_child(code_token)
+    elif self.type == TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT:
+      code_tokens = build_function_varialbe_reassignment_content(self.line, self.content)
+      if code_tokens:
+        for code_token in code_tokens:
+          self.append_child(code_token)
     elif self.type == TOKEN_TYPE.SHORT_VARIABLE_REASSIGNMENT:
       code_tokens = build_short_varialbe_reassignment_content(self.line, self.content)
       for code_token in code_tokens:
         self.append_child(code_token)
-    elif self.type in [TOKEN_TYPE.TARGET, TOKEN_TYPE.LEFT_OPERAND, TOKEN_TYPE.RIGHT_OPERAND]:
+    elif self.type == TOKEN_TYPE.FUNCTION_CALL:
+      code_tokens = build_function_name_and_parameters(self.line, self.content)
+      for code_token in code_tokens:
+        self.append_child(code_token)
+    elif self.type == TOKEN_TYPE.FUNCTION_PARAMETERS:
+      code_tokens = build_function_parameters(self.line, self.content)
+      for code_token in code_tokens:
+        self.append_child(code_token)
+    elif self.type in [TOKEN_TYPE.TARGET, TOKEN_TYPE.LEFT_OPERAND, TOKEN_TYPE.RIGHT_OPERAND, TOKEN_TYPE.FUNCTION_PARAMETER]:
       if '[' and ']' in self.line.content:
         self.append_child(CodeToken(self.line, self.content, TOKEN_TYPE.ARRAY_ELEMENT))
       else:
@@ -322,13 +339,22 @@ def build_variable_initialisation(start_line: Line, initial_code: CodeBlock) -> 
 
 
 def build_variable_reassignment(start_line: Line, initial_code: CodeBlock) -> CodeToken|None:
-  match = pattern.long_reassignment_pattern.search(start_line.content)
+  match = pattern.variable_reassignment_pattern.search(start_line.content)
   if match:
-    type = TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT
+    type = TOKEN_TYPE.VARIABLE_REASSIGNMENT
   else:
-    match = pattern.short_reassignment_pattern.search(start_line.content)
+    match = pattern.function_reassignment_pattern.search(start_line.content)
     if match:
-      type = TOKEN_TYPE.SHORT_VARIABLE_REASSIGNMENT
+      type = TOKEN_TYPE.FUNCTION_VARIABLE_REASSIGNMENT
+    else:
+      match = pattern.long_reassignment_pattern.search(start_line.content)
+      type = None
+      if match:
+        type = TOKEN_TYPE.LONG_VARIABLE_REASSIGNMENT
+      else:
+        match = pattern.short_reassignment_pattern.search(start_line.content)
+        if match:
+          type = TOKEN_TYPE.SHORT_VARIABLE_REASSIGNMENT
   if type:
     return CodeToken(start_line, CodeBlock([start_line]), type)
   return None
@@ -358,6 +384,20 @@ def build_for_body_content(start_line: Line, initial_code: CodeBlock) -> list[Co
       )
   return for_body_sub_tokens
 
+def build_variable_reassignment_content(start_line: Line, initial_code: CodeBlock) -> list[CodeToken]:
+  split_line = start_line.content.split('=')
+  if len(split_line) != 2:
+    return []
+  result = []
+  target = split_line[0].strip()
+  sub_targets = target.split(' ')
+  if len(sub_targets) > 1:
+    target = sub_targets[0]
+  result.append(CodeToken(Line(target, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.TARGET))
+  right_part = split_line[1].strip()
+  result.append(CodeToken(Line(right_part, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.LEFT_OPERAND))
+  return result
+
 
 def build_long_varialbe_reassignment_content(start_line: Line, initial_code: CodeBlock) -> list[CodeToken]:
   split_line = start_line.content.split('=')
@@ -365,6 +405,9 @@ def build_long_varialbe_reassignment_content(start_line: Line, initial_code: Cod
     return []
   result = []
   target = split_line[0].strip()
+  sub_targets = target.split(' ')
+  if len(sub_targets) > 1:
+    target = sub_targets[0]
   #if '[' and ']' in target:
   result.append(CodeToken(Line(target, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.TARGET))
   # else:
@@ -403,4 +446,44 @@ def build_short_varialbe_reassignment_content(start_line: Line, initial_code: Co
     right_operand = match.group('right_operand')
     if right_operand:
       result.append(CodeToken(Line(right_operand, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.RIGHT_OPERAND))
+  return result
+
+
+def build_function_varialbe_reassignment_content(start_line: Line, initial_code: CodeBlock) -> list[CodeToken]:
+  result = []
+  match = pattern.right_part_function_reassignment_pattern.fullmatch(start_line.content)
+  if match:
+    target = match.group('target')
+    # if '[' and ']' in target:
+    result.append(CodeToken(Line(target, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.TARGET))
+
+    function_name = match.group('function_name')
+    if not function_name:
+      return None
+    result.append(CodeToken(Line(function_name, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.FUNCTION_NAME))
+
+    parameters = match.group('parameters')
+    if parameters:
+      result.append(CodeToken(Line(parameters, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.FUNCTION_PARAMETERS))
+    return result
+  return None
+
+def build_function_name_and_parameters(start_line: Line, initial_code: CodeBlock) -> list[CodeToken]:
+  result = []
+  match = pattern.function_call_parameters_pattern.fullmatch(start_line.content)
+  if match:
+    function_name = match.group('function_name')
+    if not function_name:
+      return None
+    result.append(CodeToken(Line(function_name, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.FUNCTION_NAME))
+
+    parameters = match.group('parameters')
+    if parameters:
+      result.append(CodeToken(Line(parameters, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.FUNCTION_PARAMETERS))
+  return result
+
+def build_function_parameters(start_line: Line, initial_code: CodeBlock) -> list[CodeToken]:
+  result = []
+  for param in start_line.content.split(','):
+    result.append(CodeToken(Line(param, start_line.line_number), CodeBlock([start_line]), TOKEN_TYPE.FUNCTION_PARAMETER))
   return result

@@ -5,22 +5,23 @@ from kernel_tuner.generation.token.pragma_token import PRAGMA_TOKEN_TYPE, PRAGMA
 from kernel_tuner.generation.code.line import Line
 from kernel_tuner.util import write_file
 from kernel_tuner.generation.utils.util import *
+from kernel_tuner.util import write_file
 
 
-class AddSimdLenRule(RuleABC):
+class SimdOptimizationRule(RuleABC):
 
   def __init__(self, tree: Tree, context: Context, initial_params: PragmaTuneParams):
     super().__init__(tree, context, initial_params)
+    self.rule_id = 'simd_len'
 
   def run(self, debug_file=None):
-    simd_pragmas = filter_pragmas_contains_keyword(self.tree.pragma_tokens, [PRAGMA_KEYWORDS.SIMD])
+    simd_pragmas = filter_pragmas_contains_keyword(self.tree.pragma_tokens, [PRAGMA_KEYWORDS.SIMD], [PRAGMA_KEYWORDS.SIMDLEN])
     for simd_pragma in simd_pragmas:
       new_keywords = [] if PRAGMA_KEYWORDS.SIMDLEN in simd_pragma.keywords else [PRAGMA_KEYWORDS.SIMDLEN]
       simd_pragma.modify_keywords(new_keywords, {PRAGMA_KEYWORDS.SIMDLEN: '1'})
-      self.context.offer_with_new_token([simd_pragma], [simd_pragma], self.rule_id, self.generate_param())
+      self.context.offer_with_new_token([simd_pragma], [simd_pragma], self.rule_id)
 
-
-  def generate_param(self) -> PragmaTuneParams:
+  def generate_param(self) -> str:
     pass
 
 """
